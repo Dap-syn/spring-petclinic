@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 195275669948.dkr.ecr.us-east-1.amazonaws.com
+      - export REPO_URI=195275669948.dkr.ecr.us-east-1.amazonaws.com/springboot-inventory
+      - export IMAGE_TAG=latest
+  build:
+    commands:
+      - echo Building Docker image...
+      - docker build -t $REPO_URI:$IMAGE_TAG .
+  post_build:
+    commands:
+      - echo Pushing image to ECR...
+      - docker push $REPO_URI:$IMAGE_TAG
+      - printf '[{"name":"springboot-container","imageUri":"%s"}]' $REPO_URI:$IMAGE_TAG > imagedefinitions.json
+artifacts:
+  files: imagedefinitions.json
